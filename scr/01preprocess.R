@@ -11,14 +11,8 @@ tryCatch(
   suppressWarnings(source("helpers.R"))
 )
 
-# Load (and install) required packages
-pkgs = c("docopt", "corrr", "here",
-         "cowplot","scales", "tidyverse")
-print(paste0("Loading the following packages: ", paste(pkgs, collapse=", ")))
-suppressMessages(load_pkgs(pkgs))
-
-set.seed(4321)
-
+# CLI
+library(docopt)
 "Usage:
   01preprocess.R [options]
   01preprocess.R (--dir|--web) [--write=<logical>]
@@ -36,6 +30,15 @@ Options:
 " -> doc
 
 opt <- docopt(doc)
+
+# Load (and install) required packages
+pkgs = c("docopt", "corrr", "here",
+         "cowplot","scales", "tidyverse")
+print(paste0("Loading the following packages: ", paste(pkgs, collapse=", ")))
+suppressMessages(load_pkgs(pkgs))
+
+set.seed(4321)
+
 #print(opt) 
 
 # Preprocess ****************************************************************************************************************** #

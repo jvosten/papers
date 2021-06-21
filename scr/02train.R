@@ -2,7 +2,14 @@
 # length(list.files(path = "./", pattern = "\\.Rproj$")) > 0 # to check, whether 
 
 # Source helper_file 
-source("helpers.R")
+tryCatch(
+  error = function(cnd) {
+    print(paste0(conditionMessage(cnd), " -- trying different path"))
+    source("scr/helpers.R")
+    print("Done")
+  },
+  suppressWarnings(source("helpers.R"))
+)
 
 # CLI 
 library(docopt)

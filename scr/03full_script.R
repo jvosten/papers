@@ -12,7 +12,7 @@
 source("./scripts/helpers.R")
 
 # Load (and install) required packages
-pkgs = c("corrr", "skimr", "here", "cowplot","tidymodels",
+pkgs <- c("corrr", "skimr", "here", "cowplot","tidymodels",
          "tidyverse", "tensorflow", "reticulate") 
 load_pkgs(pkgs)
 
