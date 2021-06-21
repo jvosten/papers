@@ -3,23 +3,23 @@
 ## About this project
 Bachelor Thesis submitted to the School of Business and Economics of Humboldt-Universität zu Berlin for the degree B.Sc. Economics.
 
-### Built With
+### Built with
 
-* [R](https://www.r-project.org/)
-* [Python](https://www.python.org/)
-* [Tensorflow](https://www.tensorflow.org/)
+* [R 4.0.3](https://www.r-project.org/)
+* [Python 3.8](https://www.python.org/)
+* [Tensorflow 2.3.0](https://www.tensorflow.org/)
 
 ## Abstract
 
-## Getting Started
+Covariate shift occurs if the distribution of one or more of the covariates X in the test data significantly changes compared to X in the training data (Quionero-Candela et al., 2009)<a href="#references">[1]</a>. This can be very problematic, as the bias introudced by the covariate shift will have a negative effect on the generalization ability of the model. The goal of the paper then is to employ a monotonic lattice based model to mitigate the effect of covariate shift. This kind of model learns flexible monotonic functions by using calibrated interpolated look-up tables, the lattice (Gupta et al., 2016)<a href="#references">[2]</a>. The monotonicity constraint for individual features allows to model prior knowledge. As a first test of whether this approach is promising or not an experiment based on credit data is run. The goal here is to show that a TensorFlow Lattice (TFL) calibrated linear model (GAM) does not perform worse than a comparison classifier, in this case a Random Forrest model. 
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+## Getting started
+
+For installing a local copy of the project just follow these simple implementation steps.
 
 ### Prerequisites
 
 To run the code it is necessary to create a virtual environment for Python and TensorFlow. For doing so just run the following code:
-* Python
   ```sh
   conda env create -f environment.yml
   ```
@@ -61,17 +61,19 @@ To train the model employed in the thesis run
    ```
 By default the model is only trained and evaluated on a single small data set and not on the entire data. To run the model on the full data, just suply the `-f` flag. The `--save` flag stores the training and test ROC values for the lattice and tree model in a data frame and writes it to `out/res`. Furthermore it is possible to change model parameters as batch size, epochs, etc. from the command line via corresponding flags and values. For default values call the help flag.
 
+## Interactive script
+
+Furthermore the repo contains the above scripts as an interactive `R`script `03full_script.R`, which allows for a deeper insight into the project code.
+
 ## References
 
- \[1\] Gupta, M., A. Cotter, J. Pfeifer, K. Voevodski, K. Canini, A. Mangylov, W. Moczydlowski, and A. Van Esbroeck (2016): “Monotonic calibrated interpolated look-up tables,” The Journal of Machine Learning Research, 17, 3790–3836.
-
-\[2\] Garcia, E., R. Arora, and M. R. Gupta (2012): “Optimized regression for eﬀicient function evaluation,” IEEE Transactions on Image Processing, 21, 4128–4140.
+ \[1\] Quionero-Candela, J., M. Sugiyama, A. Schwaighofer, and N. D. Lawrence (2009): Dataset shift in machine learning, The MIT Press.
+ 
+\[2\] Gupta, M., A. Cotter, J. Pfeifer, K. Voevodski, K. Canini, A. Mangylov, W. Moczydlowski, and A. Van Esbroeck (2016): “Monotonic calibrated interpolated look-up tables,” The Journal of Machine Learning Research, 17, 3790–3836.
 
 \[3\] Garcia, E. and M. Gupta (2009): “Lattice regression,” Advances in Neural Information Processing Systems, 22, 594–602.
 
-\[4\] Moreno-Torres, J. G., T. Raeder, R. Alaiz-RodríGuez, N. V. Chawla, and F. Herrera (2012): “A unifying view on dataset shift in classification,” Pattern recognition, 45, 521–530.
-
-```
+<!-- ```
 $ pwd
 /path/to/project/directory/ba_vwl
 
@@ -95,4 +97,4 @@ $ ls
    |- helpers.R
    |- tfl_experiment.R
 
-``
+``` -->

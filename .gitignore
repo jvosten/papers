@@ -65,7 +65,7 @@ doc/**/*.pdf
 tempCodeRunnerFile.py
 
 
-############ See https://github.com/github/gitignore ############
+############ See https://github.com/github/gitignore #############
 
 ############ Für R: https://github.com/github/gitignore/blob/master/R.gitignore ############ Für Python: https://github.com/github/gitignore/blob/master/Python.gitignore
 ############ Für Tex: https://github.com/github/gitignore/blob/master/TeX.gitignore

@@ -20,8 +20,10 @@ main <- function() {
       install.packages(pkgs[!installed_pkgs], repos = "https://cran.rstudio.com/")
     }
   }
-  if (args == "--install") installer()
-  cat("\n")
+  if (length(args) > 0) {
+    installer()
+    cat("\n", "All packages installed", "\n")
+  }
 }
 
 main()
