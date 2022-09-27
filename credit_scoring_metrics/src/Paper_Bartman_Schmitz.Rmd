@@ -1,0 +1,618 @@
+---
+output: 
+  pdf_document:
+    #citation_package: natbib
+    #keep_tex: true
+    fig_caption: true
+    latex_engine: xelatex
+header-includes:
+  - \usepackage[english]{babel}
+  - \usepackage{float}
+  - \usepackage{booktabs}
+  - \usepackage{amsmath}
+  - \usepackage{bbm}
+  - \usepackage{multirow}
+documentclass: article
+fontsize: 12pt
+mainfont: Times New Roman
+line-height: 1.5
+
+---
+
+```{r setup, include = TRUE, eval = TRUE, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = FALSE, eval = TRUE)
+
+# pkgs = c("skimr", "viridis", "corrr", "gridExtra",
+#          "scmamp", "glmnet", "klaR","rpart",
+#          "kernlab", "keras", "xgboost", "discrim",
+#          "tidyverse", "tidymodels")
+# inst = lapply(pkgs, library, character.only = TRUE, quietly = TRUE) # check fo conflicts
+# set.seed(4321)
+# theme_set(theme_light())
+
+library(pander)
+library(skimr)
+library(scmamp)
+library(tidyverse)
+library(corrr)
+library(gridExtra)
+library(grid)
+library(viridis)
+library(yardstick)
+library(kableExtra)
+library(here)
+
+
+data_raw <-
+  read_csv(here("data", "semWI_credit.csv"))
+
+```
+
+\newcommand{\kom}[1]{{\textcolor{red}{#1}}}
+
+\begin{titlepage}
+	\vspace*{1,5cm}
+
+	\begin{center}
+		\Huge
+		Area Under the ROC Curve
+		\vspace{20pt}
+
+		\LARGE A comparison of performance metrics \\ for classification problems \medskip
+
+		\normalsize---
+
+		\large \textsl{Xman \& jvosten}
+
+		\vspace{0,5cm}
+
+	
+	\end{center}
+
+	\vfill
+	\parbox[b]{0,5\linewidth}{%
+		Fachbereich Kreditwissenschaften\\
+		Science Str. 1\\
+		99001 Berlin
+	}%
+	\hfill
+	%\parbox[b]{0,4\linewidth}{\raggedleft
+	%	jvosten\\
+	%	M.Nr.:654321\\
+	%	\textit{n]tes Fachsemester
+	%}%
+
+\end{titlepage}
+
+\pagebreak
+\tableofcontents
+\pagebreak
+
+\section{Introduction}
+
+<!--------------------------------------------------- TO-DO --------------------------------------------------->
+
+<!------------------------------------------------------------------------------------------------------------->
+
+<!-- my Text -------------------------------------------------------------------------------------------------------------->
+In any company decision-making is a key operation among all levels of hierarchy. The application of Machine Learning (ML) methods to support or automate decision-making is becoming a common tool in Business Intelligence. In banking for instance, ML-model based analysis to predict credit default is gaining relevance. The goal of these credit scoring systems is to give a proper estimate of credit risk for potential customers. A new customers data is analyzed by a trained algorithm which classifies the customer into a high or low risk of credit default. Such a classification system would be perfect, if it would classify all default customers as high risk and all non-default customers as low risk. In practice, perfect classification is usually not the case, leading to the problem of misclassification. False predictions result in two problematic cases: giving a credit to a high risk customer and not giving a credit to a low risk customer. Thus the correct evaluation of ML methods is a very important aspect of the modeling process, especially since the process is supposed to support business decisions.
+
+The evaluation af a ML model relies on which metric is employed to asses the method. The \textit{Receiver Operating Characteristic} curve displays the relationship between true positive rate (positive events correctly classified) and the true negative rate (negative events correctly classified), giving aid to select a decision threshold. In case we want to compare different classification algorithms and various model specifications, it would be unhandy to compare various ROC curves. Therefore the single value metric Area Under the ROC Curve (AUC) metric was introduced. In this paper we examime the use of AUC for the evaluation of machine learning algorithms, particulary looking at AUC as a measure of classifier performance. Ultimately we are facing the general problem "of how to accurately evaluate the performance of a system that learns by being shown labelled examples" (Bradley, 1997, pp.3). Any classification problem faces two major decisions in terms of modeling: which classification method should be used and how should that model be evaluated regarding accuracy. However both aspects highly depend on the given data and the type of the problem, which makes it hard to give any kind of guide line for choosing the 'right' estimator and its right 'metric'. Our goal is to show that in case of imbalanced data the ROC/AUC metric has some advantageous properties over qualitative classification metrics, especially accuracy. For our case study, we are evaluating the performance of six different classification algorithms applied on a class imbalanced credit scoring data set. To provide a better basis for comparison we generated two additional balanced data sets through oversampling techniques. For the evaluation we are using 8 different metrics, 3 rank metrics and 5 threshold metrics. As the AUC metric has the role of a benchmark metric, we particularly focus our comparison on the pairs ROC-AUC/Accuracy and ROC-AUC/PR-AUC. Thereby we aim to investigate the position of AUC within rank and threshold measures. To compare the performance of the metrics themselves, we apply a version of the Friedman test to ROC-AUC and Accuracy and for the comparison of ROC-AUC and PR-AUC we compare their respective graphs.
+
+The paper is organised as follows: in the next Section we look at some related work. In Section 3, we introduce our benchmark metric and other related metrics for classification problems. In the following Sections 4 and 5 we explain the methodology of the experiment and analyze the results. In the last section we draw a conclusion.
+
+
+\section{Related Work}
+
+<!--------------------------------------------------- TO-DO --------------------------------------------------->
+
+<!------------------------------------------------------------------------------------------------------------->
+
+In this section, we summarize previous literature which is related to our work. As related we consider papers which deal with unbalanced class distribution in machine learning, use of machine learning to solve credit scoring problems, comparison of different metrics and comparison of various classifiers.
+
+There existis a great amount of literature on the comparison of evaluation measures and a lot of research has been done in this field of machine learning. The first notable work in this field is (Flach, 2003) where he compares different metrics using the ROC isometric space. He analysed 4 evaluation measures: accuracy, precision, weighted relative accuracy and F-Measure using decision trees as a classification algorithm. The first large scale comparison of classifiers had been made by (STATLOG, 1995). They compared the performance of different algorithms on twelve datasets from different real-world problems (including credit scoring). Nevertheless, they did not compare performance using different metrics. What is especially interesting for our work, they have two data sets for the classification of credit risk problems.
+
+The first paper which made a large scale empirical comparison of evaluation methods on several classifiers and data sets was published by (Caruna \& Niculescu-Mizil, 2004). They noticed that classifiers differ in their goals. Learning methods can perform well on one criterion and perform badly on other criteria. Some classifiers, for instance boosted trees, perform well on metrics like ROC-AUC and accuracy but perform badly on probabilistic classifiers. Caruana and Niculescu-Mizil suggest choosing metrics depending on which goals we want to achieve. They also provide the existence of measures for general purpose metric as such metrics to use when more specific criteria are not known. We can use the root-mean-squared-error (RMS) or a newly created measure called SAR, which is a simple combination of the most popular measures of the three metric types (accuracy, AUC-ROC and RMS).
+
+There has been subsequent work comparing performance measures for classification, see (Fuernkranz \& Flach, 2005), (Buja et al., 2005) and (Huang \& Ling, 2007). However, all of these papers rather focus on theoretical aspects then practical applications.
+
+A further important branch of empirical research was constituted through (Caruna \& Niculescu-Mizil, 2006) and (Ferri at al., 2009). The first paper compared performance measures and the second compared learning algorithms. In (Ferri at al., 2006) eleven supervised learning methods were compared, some of the predictions were calibrated with Platt Scaling and Isotonic Regression. For evaluation the same evaluation measures as (Caruna \& Niculescu-Mizil, 2004) were employed. The performance of some of the classifiers improved dramatically due to the calibration (boosted trees, or SVMs) and for others (Neural nets or Logistic Regression) no improvement was noticed.
+
+(Ferri at al., 2009) has been the largest comparison of metrics as so far. They compared eighteen different evaluation metrics on 6 learning methods. This comparison is remarkable, if we consider that there are 35 data sets, whereas some of them deal with multiple classification problems. Furthermore the analysis of results was specified by regarding properties of the employed data sets, for instance if a data set contains a two-class or multiclass outcome, if its size is small or large or if it its outcome variable is balanced or imbalanced. Their results happened to be complementary to the work of (Caruna \& Niculescu-Mizil 2004). In our interes lies their result of observing a large difference in correlation between measures concerning class distribution. Some measures behave differently if the class distribution is imbalanced, compared to when it is balanced.
+
+Furthermore there are various papers which perform comparison of measures for classification related to a specific field of application. (Liu \& Shriberg, 2007) for instance compare evaluation measures for sentence boundary detection with the use of IT-specific classifiers; (Jeni et al., 2011) compare metrics in recognizing facial expression. 
+
+In this paper we compare evaluation measures on an imbalanced dataset in a credit scoring context. The first major work in empirical evaluation and comparison of classifiers was introduced by (Baesens et al., 2003). They compared classifiers and the performance of various state-of-the-art classification algorithms applied to eight real-life credit scoring data sets. The evaluation of these algorithms was made by two measures ROC-AUC and accuracy.
+
+A similar approach in credit scoring problems was made by (Brown \& Mues, 2012). They analysed seven different classifiers but only on imbalanced datasets. They concluded that the gradient boosting and random forest classifiers yield a very good performance at extreme levels of class imbalance, whereas the SVM sees a reduction in performance as a larger class imbalance is introduced. They evaluated the classifiers with the AUC-ROC measure.
+
+(Lessmann et al., 2015) published an actualisation of the general findings of data mining in credit scoring problems. It contains a summary of empirical studies on credit scoring problems until 2015. The empirical research was performed with a larger number of datasets, more developed classifiers algorithms and evaluation methods. Finally, the overall best results were achieved for an ensemble selection approach that integrates the principles of bootstrap sampling with a greedy hill-climbing algorithm.
+
+For a concise overview on the related literature see Table 1.
+
+```{r, message=FALSE, warning=FALSE}
+lit <- read_tsv(here("data", "lit.tsv"))
+
+lit %>%
+  select(-6) %>%
+  kable("latex", caption = "Literature table",booktabs = T) %>%
+  kable_styling(latex_options = c("striped", "scale_down"), full_width = F, position = "center")
+  
+```
+
+
+\section{Methodology}
+
+<!--------------------------------------------------- TO-DO --------------------------------------------------->
+
+<!------------------------------------------------------------------------------------------------------------->
+
+<!--------------------------------------------------- Text --------------------------------------------------->
+
+In this section, we introduce three types of performance metrics, of which we employ two typesin our analysis. We especially focus on our AUC-ROC measure, as it is the benchmark metric of our analysis. We briefly describe the details of this measurement tool. 
+
+In our work we will use eight different performance measures: Area under the Receiver Operating Characteristic Curve (AUC-ROC), Area under the Precision-Recall Curve (AUC-PR), Average Precision (APR), Accuracy (ACC), Precision (PRE), Recall (REC), F-Measure (FME) and Kappa Statistic (KAP). Those metrcis are usually categorized into two groups: threshold metrics and rank metrics. In our experiment we will particularly focus on the comparison of ROC-AUC/Accuracy and ROC-AUC/PR-AUC, to cover both type of metrics.
+
+\medskip
+\textbf{\large{Rank metrics}}
+\smallskip
+
+Rank metrics quantify the quality of rankings. Rank metrics depend only on the ordering of the predictions, not the actual predicted values. If the ordering is preserved it makes no difference if the predicted values range between $0$ and $1$ or any other range in this interval, e.g. between 0.50 and 0.51. We use three of those metrics in our work.
+
+\bigskip
+\textbf{AUC-ROC}
+\smallskip
+
+The \textit{Receiver Operating Characteristic} investigates and employs the relationship between sensitivity (the true positive rate) and specificity (true negative rate) of a classifier. The ROC curve is a plot, where sensitivity on the $y$-axis is plotted against $1-$specificity (the false positive rate) on the $x$-axis. To calculate the area under the ROC Curve is the most common method to interpret the ROC curve because it represents the expected performance to a single value. 
+\begin{align}
+Sensitivity & = \dfrac{TP}{TP + FP} 
+\end{align}
+\begin{align}
+Specificity & = \dfrac{TN}{FP + TN}
+\end{align}
+The ROC-AUC is an ordering metric, which measures how well positive cases rank above negative cases. It does not depend on the actual predicted values but only on the ordering of the predictions. The values of the AUC are in an interval between $0$ and $1$. $AUC = 1$ is the best possible result and means that the classifier scores every positive value higher than every negative. Accordingly, if the $AUC = 0$ is the worst possible result and imply that the classifier scores every negative higher then every positive. The AUC statistic is similar to the Gini coefficient, which is equal to $2 \times (AUC − 0.5)$.
+
+A more detailed explanation of the model can be found in (Flach, 2016; Fawcett, 2006).
+
+\medskip
+\textbf{AUC-PR}
+\smallskip
+
+AUC-PR is calculated in a similar way like the AUC-ROC curve. The difference is that the Precision-Recall curve plots precision on the y-axis with recall on the x-axis. The definition of precision and recall is given below. For more information see (Boyd et al, 2013).
+
+\medskip
+\textbf{Average Precision}
+\smallskip
+
+APR summarizes a Precision-Recall Curve as the weighted mean of precisions achieved at each threshold, with the increase in recall from the previous threshold used as the weight:
+\begin{align}
+APR & = \sum_{n}(R_n - R_{n-1})P_n
+\end{align}
+Where $P_n$ and $R_n$ are the precision and recall at the $n$th threshold. 
+
+\bigskip
+\textbf{\large{Threshold metrics}}
+\smallskip
+
+Threshold metrics are sensitive to a good choice of threshold. It is not important how close a prediction is to a threshold, only if it is above or below a threshold. These measures are preferable if a model is supposed to minimize the number of errors. We use five of them in our work.
+
+\medskip
+\textbf{Accuracy}
+\smallskip
+
+Accuracy is the percentage of the correctly classified positive and negative examples. It approximates how effective the algorithm is by showing the probability of the true value of the class label. It assesses the overall effectiveness of the algorithm:
+\begin{align}
+ACC & = \dfrac{TP + TN}{TP + FP + TN + FN}
+\end{align}
+\medskip
+\textbf{Precision}
+\smallskip
+
+Precision is defined as the percentage of correctly classified positive examples in examples that were classified positive. It estimates the predictive value of a label, either positive or negative, depending on the class for which it is calculated; in other words, it assesses the predictive power of the algorithm:
+\begin{align}
+PRE & = \dfrac{TP}{TP + FP}
+\end{align}
+\medskip
+\textbf{Recall}
+\smallskip
+
+Recall is defined as the percentage of correctly classified positive examples in all positive examples. It approximates the probability of the positive (negative) label being true; in other words, it assesses the effectiveness of the algorithm on a single class.
+\begin{align}
+REC & = \dfrac{TP}{TP + FN}
+\end{align}
+\medskip
+\textbf{F-Measure}
+\smallskip
+
+F-Measure is the harmonic mean of precision and recall.
+\begin{align}
+FME & = \dfrac{2 \times PRE \times REC}{PRE + REC}
+\end{align}
+\medskip
+\textbf{Kappa}
+\smallskip
+
+Kappa Statistic indicates the proportion of agreement beyond that expected by chance, that is, the achieved beyond-chance agreement as a proportion of the possible beyond-chance agreement. It takes the form:
+\begin{align}
+KAP & = \dfrac{P_o - P_c}{1 - P_c}
+\end{align}
+Where $P_o$ is the proportion of observed agreements and $P_c$ is the proportion of agreements expected by chance (Sim \& Wright 2005).
+
+\bigskip
+
+Furthermore there exists a third type of measure - probability metrics. These measures quantify the deviation of the estimated probability with respect to the actual probability. We can interpret the predicted value of each case as the conditional probability of that case. For our comparison we are not taking this kind of measure into account, since the other two types are  recommended to use for the evaluation of binary classification problems (Kuhn, \& Johnson, 2013, Ch. 11; Branco et al., 2016).
+
+
+\section{Experimental Design}
+
+<!--------------------------------------------------- TO-DO --------------------------------------------------->
+
+<!------------------------------------------------------------------------------------------------------------->
+
+The data set used for our experiment was obtained through the course instructor. It contains customer data of some financial institution and the share of good clients amounts about 93 percent. A bad customer is defined by two characteristics: 
+\begin{description}
+  \item[DEFAULT] A person who experienced 90 days past due delinquency or worse. 
+  \item[PROFIT] A person who generates a negative cash flow, approximated through total cash flow of the loan
+\end{description}
+
+```{r overview}
+data <- data_raw %>%
+  rename(unsecure_lines = RevolvingUtilizationOfUnsecuredLines) %>%
+  rename(nr_past_due30 = NumberOfTime30.59DaysPastDueNotWorse) %>%
+  rename(nr_open_credits = NumberOfOpenCreditLinesAndLoans) %>%
+  rename(nr_re_loans = NumberRealEstateLoansOrLines) %>%
+  rename(nr_family = NumberOfDependents) %>%
+  rename_all(tolower)
+
+skim(data) %>%
+  skimr::focus(n_missing, numeric.mean, numeric.sd) %>%
+  select(-1) %>%
+  kable("latex", caption = "Variable summary", booktabs = TRUE, digits = 3) %>%
+  kable_styling(latex_options = "striped", full_width = F, position = "center")
+```
+
+To perform our experiment we choose DEFAULT as our target variable. A summary of the data set is given below in Table 2. It appears to be that the data set is already prepared for modeling; there are no missing values, all variables are numeric and all variables, except the target variables, are standardized. In Figure 1 we see a visualization of the severe class imbalance of DEFAULT and a correlation plot of default and all predictor variables, showing a low correlation over all. Since the data set is already relatively prepared we  only applied a few further preprocessing steps: some variables were renamed, PROFIT was dropped and DEFAULT was transformed into a factor variable. 
+
+
+```{r eda_plots, fig.cap='Class Imbalance and Correlation', out.width='0.95\\linewidth', fig.pos='H'}
+data <- data %>%
+  select(-profit) %>%
+  mutate(
+    default = factor(default),
+    default = fct_relevel(default, "1"),
+  ) 
+
+# Barplot default Var
+bplot <- function(dataset){
+  dataset %>%
+    ggplot(aes(x = DEFAULT, y = (..count..)/sum(..count..)), colour = DEFAULT) +
+    geom_bar(fill = "#4271AE",
+             alpha = 0.8) +
+    scale_y_continuous(labels = scales::percent) +
+    labs(title = "", y = "Percent", x = "default")
+}
+
+# Correlation plot
+corplot <- function(dataset){
+  dataset %>%
+    mutate_if(is.factor, as.numeric) %>%
+    correlate(quiet = TRUE) %>%
+    focus(default) %>%
+    mutate(rowname = reorder(rowname, default)) %>%
+    ggplot(aes(rowname, default)) +
+    geom_col(fill = "#4271AE") + coord_flip() +
+    expand_limits(y = c(-1,1)) +
+    labs(title = "", y = "", x = "default")
+}
+
+grid.arrange(eval(bplot(data_raw)), eval(corplot(data)), layout_matrix = rbind(c(1,2)))
+```
+
+For the modeling process we split the data set into a training and a test set (with a ratio of 75/25). Due to the severe class imbalance the sample was stratified by the target variable. Additionally we further splitted the training set into a training and a validation set (ratio 80/20) for tuning model parameters. We did not use $N$-fold cross validation due to computational restrictions. Furthermore we created two additional data sets through over-sampling, since as it is our goal to compare the performance of the AUC and other metrics, especially Accuracy and PR-AUC. Therefore we used two different over-sampling techniques, \textit{down-sampling} and \textit{SMOTE}. Down-sampling involves randomly removing observations from the majority class to prevent it from dominating the learning algorithm. SMOTE (Synthetic Minority Oversampling Technique) is an up-sampling technique, which generates new synthetic instances from existing minority cases. Both techniques result in a perfectly balanced data set. The raw test set contains 1954 bad and 26275 good customers, for the down-sampled set both classes contain 1954 observations and for the SMOTE set both contain 26275 cases. By using differently balanced versions of the data set we extend the range of our performance test, since we can now compare the performance of each metric for balanced and imbalanced data.
+
+The goal of our paper is to explore the AUC metric und compare it with other metrics. Therefore our experiment aims to compare the performance of a set of performance metrics applied in the context of credit scoring. ML algorithms are employed in credit scoring to solve a classification problem: on the basis of available data, every customer is assigned a binary label, as for instance 'customer likely defaults' or 'customer likely not defaults'. Since a classification model results in a binary outcome, the target variable $y$ can either take on the value $y = 1$ if the customer likely defaults, or $y = 0$ if the customer likely not defaults. To model the response based on our data sets we selected six classifiers which are commonly used for credit scoring (Baesens et al., 2003; Brown \& Mues, 2012). For the modeling and tuning process we used the `tidymodels` framework in \textsf{R}; each classifier is tuned on a random grid of 25 different hyperparameters (or hyperparameter combination, if there is more then one parameter to tune). A description of the workflow for each model is supplied in the accompanying \textsf{R}-script. We chose the following modeling techniques and grid settings:
+
+\bigskip 
+\textit{Penalized Logistic Regression (LR)}
+\smallskip
+
+The logistic regression model contains two tuning parameters: a penalty value and a mixing parameter. We set the mixing parameter $\alpha = 1$ and tuned the penalty on a sequence of the range $[0.0001, 0.1]$. For more information see (Friedman et al., 2008).
+
+\medskip
+\textit{Random Forest (RF)}
+\smallskip
+
+The random forest model contains three tuning parameters: a value for the number of predictors that will be randomly sampled at each split, a value for the number of trees and a value for the number of data points that are required for a node to split. We set the tree parameter $= 1000$, the first parameter was tuned in the range of $[2, 8]$ and the last one in $[2, 40]$. A more detailed explanation of the model can be found in (Breiman, 2001).
+
+\medskip
+\textit{Support Vector Machine (SVM)}
+\smallskip
+
+The SVM-model uses a radial basis kernel function for training and prediction and contains two tuning parameters: the cost of predicting a sample within or on the wrong side of the margin and a precision parameter for the radial basis funcion. The first parameter was tuned in the range of $[0.25, 128]$, the second in $[0.001, 0.01]$. For more information see (Noble, 2006).
+
+\medskip  
+\textit{Multi-layer Perceptron (MLP)}
+\smallskip
+
+For our MLP-model (Neural Network) we choose the penalty parameter over dropout, which leaves us with four tuning parameters: a value for the number of units in the hidden layer, a penalty value for the amount of weight decay, a value for the number of training iterations (epochs), a type of activation function, which connects hidden layer and input variables. The hidden units parameter was tuned in the range of $[1, 10]$, the penalty value in $[0.0001, 0.1]$; batch size was fixed set $20$ and as activation function we chose relu. A more detailed explanation of the model can be found in (Atiya, 2001).
+
+\medskip
+\textit{Gradient Boosting (XGB)}
+\smallskip
+
+The gradient boosting model uses the XGBoost algorithm and contains a total of 7 hyperparameters of which we tuned the following four: the number of predictors at each split, in the range of $[2, 16]$; the number of trees, in the range of $[1000, 2000]$; the maximum depth of a tree, in the range of $[1, 5]$; and the rate at which the boosting algorithm adapts from iteration to iteration, in the range of $[0.01, 0.1]$. For more information see (Chen \& Guestrin, 2016).
+
+\medskip
+\textit{Naive Bayes (NB)}
+\smallskip
+
+The naive bayes model contains two tuning parameters: a regularization value and a correction parameter for smoothing low-frequency counts. The first parameter was tuned in the range of $[0.5, 1.5]$, the second in the range of $[0, 3]$. A more detailed explanation of the model can be found in (Lewis, 1998).
+
+\bigskip
+
+All 25 specifications of each model were evaluated using the validation set and each model was applied to all three data sets, resulting in 125 models per data set. The 25 specifications of each of the six models were then evaluated by eight performance metrics and the best value for each classification model and metric was selected, getting us 48 results for each data set.  
+
+To Asses the performance of multiple classification models on multiple datasets it is recommended to perform a statistical test for the chosen evaluation metric (Japkowicz \& Shah, 2011). For our comparisson of AUC and accuracy we therefore conducted two non-parametrical tests on each metric, following the approach of (Demšar, 2006),  and compared the results for both metrics. However, as the number of data sets and algorithms in our experiment was rather small, we followed the recommendation of (Garcia et al., 2010) using Friedman's Aligned Rank test instead of the regular Friedman test; instead of Nemenyi's post hoc test we used Friedman's Aligned Ranks post hoc test to assess all the pairwise differences between algorithms.
+
+In Friedman's Aligned Rank test "a value of location is computed as the average performance achieved by all algorithms in each data set. Then, it calculates the difference between the performance obtained by an algorithm and the value of location" (Garcia et al., 2010, p.2051). After repeating this step for each algorithm and data set, the so called \textit{aligned observations}, the resulting differences, are then ranked from $1$ to $kn$ relative to each other. "Then, the ranking scheme is the same as that employed by a multiple comparison procedure which employs indepen-dent samples; such as the Kruskal–Wallis test" (Garcia et al., 2010, p.2051). This results in the following test statistic, which is compared with a chi-square distribution for $k - 1$ degrees of freedom:
+\begin{align}
+  T & = \dfrac{
+	(k -1)\bigl[\sum_{j=1}^{k} \hat{R_{\cdot j}^{2}} - (kn^2/4)(kn + 1)^2\bigr]
+}{
+\bigl\{[kn(kn + 1)(2kn + 1)]/6\bigr\} - (1/k)\sum_{i=1}^{n}\hat{R_{i\cdot}^{2}}
+}
+\end{align}
+Then $\hat{R_{\cdot j}}$ is the rank total of the $j$th algorithm and equals $\hat{R_{i\cdot}}$ the rank total of the $i$th data set. Furthermore (Garcia et al., 2010) recommend to proceed with a post hoc test, if the null hypothesis is rejected. Friedman's Aligned Rank post hoc test is based on a p-value comparison, where thoses values are obtained from the Friedman's Aligned Rank test; A more detailed explanation of both tests can be found in their paper. For our experiment we used the test functions provided by the `scmamp` package. 
+
+Therefore we statistically compared all 48 results of each metric and tested the significance of difference in rank between the individual classification models using the mentioned tests. For comparison of AUC-ROC and PR-AUC we simply looked at the plotted curves.
+
+
+\section{Empirical Results}
+
+<!--------------------------------------------------- TO-DO --------------------------------------------------->
+
+<!------------------------------------------------------------------------------------------------------------->
+
+In this section we will look at the results of our experiment, comparing the performance of our set of metrics and particularly discuss the differences between the pairs of Accuracy \& ROC-AUC and PR-AUC \& ROC-AUC.
+
+\subsection*{General findings}
+
+```{r}
+load(here("out", "exp_results.RData"))
+
+mean_diff %>%
+  mutate_if(is.numeric, round, digits = 3) %>%
+  mutate(metrics = c(
+  "Accuracy",
+  "Avg Precision",
+  "F-Measure",
+  "Kappa",
+  "AUC-PR",
+  "Precision",
+  "Recall",
+  "AUC-ROC")) %>%
+  select(metrics, 2:4) %>%
+  rename(Metrics = metrics) %>%
+  kable("latex", caption = "Mean difference per classifier for each pair of data sets", booktabs = TRUE) %>%
+  kable_styling(latex_options = "striped", full_width = F, position = "center")
+```
+
+
+Table 4 (on the following page) reports the best values for each metric and classifier model and for each data set. Probably the most obvious result is the impact of class imbalance on most metrics. For instance the values for precision and recall altered significantly, with the range of values for recall changing from $(0.003, 0.16)$ for inbalanced data to $(0.46, 0.91)$ for balanced data. A similar result holds for the kappa metric, for imbalanced data it does not reach the $0.2$ threshold once, whereas it is in the $(0.2, 0.3)$ for most classifiers in the balanced data sets. Almost the same holds for the F-measure, except that it reaches $0.221$ for one classifier. If we group those metrics which perform significantly different on imbalanced and those which do not, we encounter an earlier made categorization: threshold metrics show siginificant performance variance, whereas ranking metrics do not. In Table 3 we measured the difference of each metric value for each data set $(DS_{ij}^{1} - DS_{ij}^{2})$. It clearly shows that for threshold metrics the deviation for each measure never is higher then about $3.5\%$, it mostly is below. For threshold metrics the table shows great variation between imbalanced and balanced data sets. This result is not very surprising, as it is well documented that threshold metrics do not perform well on imbalanced data (Jeni et al., 2013; Ferri et al., 2009).
+
+
+```{r}
+# noch ne map fkt schreiben, um die vars umzubenenen
+
+bm_list %>%
+  map(., mutate, metrics = c("Accuracy",
+  "Avg Precision",
+  "F-Measure",
+  "Kappa",
+  "AUC-PR",
+  "Precision",
+  "Recall",
+  "AUC-ROC")) %>%
+  map(., select, metrics, 2:7) %>%
+  map(., rename, Metrics = metrics) %>%
+  bind_rows() %>%
+  mutate_if(is.numeric, round, digits = 3) %>%
+  kable("latex", caption = "Best metrics for each data set", booktabs = TRUE) %>%
+  pack_rows("Raw data", 1, 8, latex_gap_space = "1em") %>%
+  pack_rows("Down-sampled data", 9, 16, latex_gap_space = "1em") %>%
+  pack_rows("SMOTE-sampled data", 17, 24, latex_gap_space = "1em") %>%
+  kable_styling(latex_options = "striped", full_width = F, position = "center")
+```
+
+
+\subsection*{Problems of threshold metrics: Accuracy}
+
+Especially the measure of accuracy is problematic for imbalanced data, because accuracy only reports the share of correct responses, consisting in the sum of true positive and true negative values. If the outcome class is severly unbalanced, for instance following a distribution of $99\%$ negatives to $1\%$ positive, then we could just guess the majority class and we would obtain a $99\%$ accurate classifier. This is not surprising, as accuracy by default assumes a $50\%$ threshold between a positive and negative classification. If we now look at Table 4, we see an accuracy of about $93\%$ for all classifiers. Figure 1 in the last section reminds us of the class distribution of the outcome variable: about $7\%$ of the clients were defaulters. Most likely the accuracy for all classifiers applied on the imbalanced data just mimiced the class distribution of default. In case of credit scoring this could be highly problematic, since accuracy does not hold much information on the False Negative rate, those customers which were predicted as 'non-default' but who were actually defaulters. In our data set the average default generates cost of $\$ 11145.56$, the average non-default results in a profit of $\$ 866.61$. Minimizing the amount of false negatives by only a few percent would decrease a lending companies loss on credit default significantly.
+
+\subsection*{Statistical comparison}
+
+If we now reconsider the question of model selection for production, it would be impossible to draw any conclusion on the imbalance data set only by looking at accuracy. A different result occurs for the AUC metric. As we can see in Table 4, regarding
+```{r}
+test_data %>%
+  map(friedmanAlignedRanksTest) %>%
+  map(broom::tidy) %>%
+  map2(.y = names(test_data), ~ mutate(.x, Metric = .y)) %>%
+  bind_rows() %>%
+  select(Metric, 1:3) %>%
+  kable("latex", caption = "Friedman Aligned Rank test",booktabs = T, digits = 2) %>%
+  kable_styling(latex_options = c("striped", "hold_position"), full_width = F, position = "center")
+
+  #pander(., caption = "Friedman Aligned Rank test for AUC & Acc")
+```
+AUC, the random forest model and the gradient boosting classifier perform better then all of the other classifiers and they due so in any of the data sets. To statistically test if there is a difference in performance we applied the Friedman Aligned Rank test for Accuracy and AUC; $H_0$ is defined `All algorithms perform the same'. For the results of the tests for both metrics see Table 5 below. We can reject the null hypothesis for AUC, but not for Accuracy. Hence, statistically there is no performance difference among the selected algorithms, if we chose accuracy as evaluation metric.
+
+
+```{r, message=FALSE, warning=FALSE, out.width='0.9\\linewidth', fig.cap='Post hoc test'}
+
+grid_arrange_shared_legend <- function(..., ncol = length(list(...)), nrow = 1, position = c("bottom", "right")) {
+
+  plots <- list(...)
+  position <- match.arg(position)
+  g <- ggplotGrob(plots[[1]] + theme(legend.position = position))$grobs
+  legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+  lheight <- sum(legend$height)
+  lwidth <- sum(legend$width)
+  gl <- lapply(plots, function(x) x + theme(legend.position="none"))
+  gl <- c(gl, ncol = ncol, nrow = nrow)
+
+  combined <- switch(position,
+                     "bottom" = arrangeGrob(do.call(arrangeGrob, gl),
+                                            legend,
+                                            ncol = 1,
+                                            heights = unit.c(unit(1, "npc") - lheight, lheight)),
+                     "right" = arrangeGrob(do.call(arrangeGrob, gl),
+                                           legend,
+                                           ncol = 2,
+                                           widths = unit.c(unit(1, "npc") - lwidth, lwidth)))
+
+  grid.newpage()
+  grid.draw(combined)
+
+  # return gtable invisibly
+  invisible(combined)
+
+}
+
+post_hoc <- function(metric = "AUC"){
+  test_data[[metric]] %>%
+    friedmanAlignedRanksPost(.) %>%
+    plotPvalues(., alg.order=c(6:1)) +
+    ggtitle((paste("Friedman p-values for", metric))) +
+    scale_fill_viridis(direction = 1, option = "C") +
+    labs(y = NULL)
+}
+
+grid_arrange_shared_legend(eval(post_hoc("AUC")), eval(post_hoc("Accuracy")), ncol = 2, nrow = 1)
+#grid.arrange(eval(post_hoc("AUC")), eval(post_hoc("Accuracy")), layout_matrix = rbind(c(1,2)))
+```
+
+
+To illustrate those findings we applied the Friedman Aligned Rank post hoc test to both metrics, even though we could not reject the null hypothesis for accuracy. Taking a look at all pairwise differences between algorithms and for both metrics, we can see in Figure 2. that there are no recognizable differences of performance, except for one pair, if accuracy is the chosen evaluation metric. For AUC on the other hand, we obtain 5 significant differences, which were to expect, since we saw two better performing models in all of the data sets. From Figure n we can see, that the random forest classifier outperforms logistic regression, SVM and naive bayes with $p < 0.05$; same holds for the gradient boosted classifier, except that the p-value for naive bayes is $0.06$. It is also not surprising that there is a high correlation between those two classifiers, since their mechanism is very similar.
+
+\subsection*{Rank curves: ROC \& AUC-PR}
+
+Finally we compare the ROC-curves and the Precision-Recall-curves for all classifiers and data sets. In Figure 3 we can see the difference in performance for balanced and imbalanced data, in both type of curves. Both curves show the advantage, which rank metrics have over threshold metrics: instead of just delivering a single point estimate, we obtain an entire curve of the classifier’s performance, which gives us much more information. Therefore we gain flexibility, because the instances get ranked by score first and we can later decide what threshold to use. As in credit scoring our potential goal is to minimize cost, which could mean to minimize the false-negative rate, it is advantagous to have a metric, which supports the finding of good score threshold for deciding positive and negative instances.
+
+
+```{r, fig.cap="ROC curves (top) and PR-curves (bottom) for all data sets", out.width='0.95\\linewidth'}
+load(here("out", "credit_results.RData"))
+
+p1 <- roc_list[[1]] + ggtitle((paste(names(pr_list[1]), "data"))) + theme(legend.position = "none")
+p4 <- pr_list[[1]] + ggtitle("") + theme(legend.position = "none")
+p2 <- roc_list[[2]] + ggtitle((paste(names(pr_list[2]), "data"))) + theme(legend.position = "none")
+p5 <- pr_list[[2]] + ggtitle("") + theme(legend.position = "none")
+p3 <- roc_list[[3]] + ggtitle((paste(names(pr_list[3]), "data")))
+p6 <- pr_list[[3]] + ggtitle("")
+
+# lay <- rbind(c(1,2),
+#              c(3,4))
+# grid.arrange(grobs = list(p1, p2, p3, p4),
+#              layout_matrix = lay)
+
+# grid_arrange_shared_legend(p1, p2, ncol = 2, nrow = 1)
+# grid_arrange_shared_legend(p3, p4, ncol = 2, nrow = 1)
+# grid_arrange_shared_legend(p5, p6, ncol = 2, nrow = 1)
+
+grid_arrange_shared_legend(p1, p2, p3, p4, p5, p6, ncol = 3, nrow = 2)
+
+```
+
+However if we compare the values of AUC and PR-AUC regarding the question of model performance, we can see in Table 3, that AUC always ranks random forest and gradient boost the highest, but PR-AUC favors logistic regression for imbalanced data and the multi-layer perceptron for balanced data. Keeping in mind that ROC covers both classes, whereas PR-curve focuses on the minority class, it could be the case that ROC may provide a too optimistic view of the performance (Branco et al., 2016). The curves for both metrics depict this tendency. Regarding the aim of the model it therefore would be necessary to investigate this finding further; one option to optimise performance would be to alternate the threshold for the AUC.
+
+\section{Conclusion}
+
+<!--------------------------------------------------- TO-DO --------------------------------------------------->
+
+<!------------------------------------------------------------------------------------------------------------->
+
+In this study we used a real-world based credit scoring problem to compare different performance metrics to evaluate a number of binary classification models. For this purpose we extended our testing data through resampling techniques. Our benchmark metric in this comparison was AUC, our aim was a general comparison of alternative metrics, but we especially focused on comparing AUC with accuracy and AUC-PR. 
+
+Therefore we examined ranking and threshold metrics and our findings generally confirm the expectation we build due to our investigation in related works. The combination of ROC Curve and AUC metric has shown some advantageous properties as a classification performance measure, especially compared to accuracy: it gives an idea  of how well separated negative and positive classes are for the decision threshold; it does not depend on a decision threshold; it gives us more information then a single value and therfore more flexibility; and, at least for this kind of data, AUC measured performance differences have been assured statistically.
+
+Though the ROC-AUC metric is a common metric, in particular when it comes to class imbalance, it is important to keep in mind, that there is a potential danger of AUC to give a too optimistic evaluation. As we underlined in the comparison of ROC and PR-AUC, ROC focusses on both classes. This can lead to unreliable estimates "when the problem of class imbalance is associated to the presence of a low sample size of minority instances" (Fernández et al., 2018, p.55). For the field of credit scoring, but in general any kind of ML application field which faces severe class imbalance, it is could be useful to drive the development of AUC/ROC forward by customizing the metric for the one needs and pecularities. As stated by (Brown \& Mues, 2012), it would be benifical to investigate further in the effect of over-sampling techniques and its effect on credit scoring. In this regard our paper showed, in a limited scope, that in case of performance evaluation ranking metrics have a certain advantage compared to threshold metrics.
+
+\pagebreak
+
+<!-- \subsection*{References} -->
+
+\begin{thebibliography}{100} 
+
+\bibitem{AT01} Atiya, A. F. (2001). Bankruptcy prediction for credit risk using neural networks: A survey and new results. \emph{IEEE Transactions on neural networks}, 12(4), 929-935.
+
+\bibitem{BA03}  Baesens, B., Van Gestel, T., Viaene, S., Stepanova, M., Suykens, J., \& Vanthienen, J. (2003). Benchmarking state-of-the-art classification algorithms for credit scoring. \emph{Journal of the Operational Research Society}, 54(6), 627–635.
+
+\bibitem{BR97} Bradley, A. P. (1997). The use of the area under the ROC curve in the evaluation of machine learning algorithms. \emph{Pattern recognition}, 30(7), 1145-1159.
+
+\bibitem{BR01} Breiman, L. (2001). Random forests. \emph{Machine learning}, 45(1), 5-32.
+
+\bibitem{BO13} Boyd, K., Eng, K. H., \& Page, C. D. (2013). Area under the precision-recall curve: point estimates and confidence intervals. In \emph{Joint European conference on machine learning and knowledge discovery in databases} (pp. 451-466). Springer, Berlin, Heidelberg.
+
+\bibitem{BR16} Branco, P., Torgo, L., \& Ribeiro, R. P. (2016). A survey of predictive modeling on imbalanced domains. \emph{ACM Computing Surveys (CSUR)}, 49(2), 1-50.
+
+\bibitem{BR12} Brown, I., \& Mues, C. (2012). An experimental comparison of classification algorithms for imbalanced credit scoring data sets. \emph{Expert Systems with Applications}, 39(3), 3446-3453.
+
+\bibitem{BU05} Buja, A., Stuetzle, W., \& Shen, Y. (2005). Loss functions for binary class probability estimation and classification: Structure and applications. Working draft, November, 3.
+
+\bibitem{CA04} Caruana, R., \& Niculescu-Mizil, A. (2004). Data mining in metric space: an empirical analysis of supervised learning performance criteria. In \emph{Proceedings of the tenth ACM SIGKDD international conference on Knowledge discovery and data mining} (pp. 69-78). 
+
+\bibitem{CA06} Caruana, R., \& Niculescu-Mizil, A. (2006). An empirical comparison of supervised learning algorithms. In \emph{Proceedings of the 23rd international conference on Machine learning} (pp. 161-168). 
+
+\bibitem{CH16} Chen, T., \& Guestrin, C. (2016). Xgboost: A scalable tree boosting system. In {Proceedings of the 22nd acm sigkdd international conference on knowledge discovery and data mining} (pp. 785-794).
+
+\bibitem{DE06}  Demšar, J. (2006.) Statistical comparisons of classifiers over multiple data sets. \emph{Journal of Machine Learning Research}, 7, 1–30.
+
+\bibitem{FA06} Fawcett, T. (2006). An introduction to ROC analysis. \emph{Pattern recognition letters}, 27(8), 861-874. 
+
+\bibitem{FE09} Ferri, C., Hernández-Orallo, J., \& Modroiu, R. (2009). An experimental comparison of performance measures for classification. \emph{Pattern Recognition Letters}, 30(1), 27-38.
+
+\bibitem{FE18} Fernández, A., García, S., Galar, M., Prati, R. C., Krawczyk, B., \& Herrera, F. (2018). \emph{Learning from imbalanced data sets} (pp. 1-377). Berlin: Springer.
+
+\bibitem{FL03} Flach, P. A. (2003). The geometry of ROC space: understanding machine learning metrics through ROC isometrics. In \emph{Proceedings of the 20th international conference on machine learning (ICML-03)} (pp. 194-201).
+
+\bibitem{FL16} Flach, P. A. (2016). ROC analysis. In \emph{Encyclopedia of Machine Learning and Data Mining} (pp. 1-8). Springer.
+
+\bibitem{FR10} Friedman, J., Hastie, T. \& Tibshirani, R. (2010). Regularization Paths for Generalized Linear Models via Coordinate Descent, \emph{Journal of Statistical Software}, Vol. 33(1), 1-22.
+
+\bibitem{FU05} Fürnkranz, J., \& Flach, P. A. (2005). Roc ‘n’rule learning—towards a better understanding of covering algorithms. \emph{Machine Learning}, 58(1), 39-77. 
+
+\bibitem{HU07} Huang, J., \& Ling, C. X. (2007). Constructing New and Better Evaluation Measures for Machine Learning. In \emph{IJCAI} (pp. 859-864). 
+
+\bibitem{JA11} Japkowicz, N., \& Shah, M. (2011). \emph{Evaluating learning algorithms: a classification perspective}. Cambridge University Press.
+
+\bibitem{JE13} Jeni, L. A., Cohn, J. F., \& De La Torre, F. (2013). Facing imbalanced data--recommendations for the use of performance metrics. In \emph{2013 Humaine association conference on affective computing and intelligent interaction} (pp. 245-251).
+
+\bibitem{KI95} King, R. D., Feng, C., \& Sutherland, A. (1995). Statlog: comparison of classification algorithms on large real-world problems. \emph{Applied Artificial Intelligence an International Journal}, 9(3), 289-333. 
+
+\bibitem{KU13} Kuhn, M., \& Johnson, K. (2013). \emph{Applied predictive modelling Springer}. New York Heidelberg Dordrecht London.
+
+\bibitem{LE98} Lewis, D. D. (1998). Naive (Bayes) at forty: The independence assumption in information retrieval. In \emph{European conference on machine learning} (pp. 4-15). Springer, Berlin, Heidelberg.
+
+\bibitem{LE15} Lessmann, S., Baesens, B., Seow, H. V., \& Thomas, L. C. (2015). Benchmarking state-of-the-art classification algorithms for credit scoring: An update of research. \emph{European Journal of Operational Research}, 247(1), 124-136. 
+
+\bibitem{LI07} Liu, Y., \& Shriberg, E. (2007). Comparing evaluation metrics for sentence boundary detection. In \emph{2007 IEEE International Conference on Acoustics, Speech and Signal Processing-ICASSP'07} (Vol. 4, pp. IV-185). IEEE.
+
+\bibitem{NO06} Noble, W. S. (2006). What is a support vector machine?. \emph{Nature biotechnology}, 24(12), 1565-1567.
+
+\bibitem{SO06} Sokolova, M., Japkowicz, N., \& Szpakowicz, S. (2006). Beyond accuracy, F-score and ROC: a family of discriminant measures for performance evaluation. In \emph{Australasian joint conference on artificial intelligence} (pp. 1015-1021). Springer, Berlin, Heidelberg.
+
+\bibitem{SI05} Sim, J., \& Wright, C. C. (2005). The kappa statistic in reliability studies: use, interpretation, and sample size requirements. \emph{Physical therapy}, 85(3), 257-268.
+
+\end{thebibliography}
+
+
+<!-- \section{Appendix} -->
+
+<!--------------------------------------------------- TO-DO --------------------------------------------------->
+
+<!------------------------------------------------------------------------------------------------------------->
+
+
+<!-- ```{r} -->
+<!-- # Workflows -->
+<!-- ``` -->
+

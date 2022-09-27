@@ -1,0 +1,11 @@
+Author & publishing year	# Data sets	# Classification Methods	Classification Type	# Metrics	Name of the metrics
+Baesens et al. 2003	8	17	binary	2	ACC, AUC-ROC
+Caruana & Niculescu-Mizil 2004	7	7	binary	10	ACC, LFT, FSC, AUC-ROC, APR, BEP, RMS, MXE, CAL, SAR
+Sokolova et al. 2006	1	2	binary	5	ACC, FSC, SEN, SPE, AUC-ROC
+Caruana & Niculescu-Mizil 2006 	11	10	binary	8	ACC, FSC, LFT, ROC-AUC, APR, BEP, RMS, MXE
+Liu & Shriberg 2007	2	5	binary	6	NIST, CER, FSC, AUC-ROC, AUC-PR, AUC-DET
+Hulse et al. 2007	35	11	binary	7	AUC-ROC, K/S Statistic, G, FSC, ACC, TPR
+Ferri et al. 2009	30	6	binary & multiple	18	ACC, KapS, MFSC, MAvA, MAvG, AUC-ROC (various forms), MAPR, MPR, MAE, MSE, LogL, CalL, CalB
+Nanni et al. 2011	3	4	binary	4	ACC, AUC-ROC, T1E, T2E
+Jeni et al. 2013	3	6	binary	6	ACC, FSC, KapS, ALPHA, AUC-ROC, AUC-PR
+Lessmann et al. 2015	8	41	binary	6	AUC-ROC, ACC, PG, HSC, BS
