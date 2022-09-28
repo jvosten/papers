@@ -5,7 +5,7 @@
 tryCatch(
   error = function(cnd) {
     print(paste0(conditionMessage(cnd), " -- trying different path"))
-    source("scr/helpers.R")
+    source("src/helpers.R")
     print("Done")
   },
   suppressWarnings(source("helpers.R"))

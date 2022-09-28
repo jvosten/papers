@@ -9,7 +9,7 @@
 # Getting started ************************************************************************************************************* #
 
 # Source helper_file 
-source("./scr/helpers.R")
+source("./src/helpers.R")
 
 # Load (and install) required packages
 pkgs <- c("corrr", "skimr", "here", "cowplot","tidymodels",

@@ -5,7 +5,7 @@
 tryCatch(
   error = function(cnd) {
     print(paste0(conditionMessage(cnd), " -- trying different path"))
-    source("scr/helpers.R")
+    source("src/helpers.R")
     print("Done")
   },
   suppressWarnings(source("helpers.R"))
@@ -71,7 +71,7 @@ tryCatch(
 
 # External .py script to generate feature configs for the model; called within the model
 source_ext <- function() {
-  reticulate::source_python(here("scr", "feature_configs.py"), 
+  reticulate::source_python(here("src", "feature_configs.py"), 
                             envir = .GlobalEnv) 
 }
 

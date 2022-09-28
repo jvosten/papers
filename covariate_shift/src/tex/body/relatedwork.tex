@@ -1,0 +1,36 @@
+\section{Related Work}\label{Sec:Relwork}
+
+Since mitigation of covariate shift is the main topic of this paper, the literature review is going to be focused on this aspect. For a review of similar learning methods as the montonic calibrated lattice applied here, see \citep{gupta2016monotonic}. For a review of classifier selection for credit scoring, see \cite{baesens2003benchmarking} respectively \citep{lessmann2015benchmarking}.
+
+We furthermore restrict our literature review to methods dealing with what \citep{storkey2009training} calls `Simple covariate shift' (p. 7) in the pardigm of unsupervised learning; that is if the complete data set shift is characterized by what we will define as covariate shift in Sec. \ref{Sec:covshift}: $P_{tr}(x) \neq P_{tst}(x)$, everything else stays the same. Exceeding this rather simple case of data set shift there exists a broad literature on domain and method specific ways to mitigate cases in which covariate shift is only one aspect of bias; see for instance \citep{kato2020off} or \citep{johansson2018learning}.
+
+As we will see in Sec. \ref{Sec:covshift} there is no general definition for covariate shift, neither is there even a common naming convention for the general problem of data set shift \citep{moreno2012unifying}. This makes it complicated to compile a review of the literature on the topic, as some work could have been overseen simply because of the aforementioned. Apart from this we can identify two superordinated approaches for covariate shift correction: ($i$.) importance weighting and ($ii$.) error bounds for domain adaption (statistical learning bounds).
+
+
+\subsection*{Importance Weighting}
+
+Given we know the probabilites of finding $x$ in the train and test set, $P_{tr}(x)$ and $P_{tst}(x)$, \citep{shimodaira2000improving} showed that under covariate shift the log-likelihood estimation becomes asymptotically optimal, if each instance is reweighted with 
+\begin{align*}
+	w(x) = \frac{P_{tst}(x)}{P_{tr}(x)}. 
+\end{align*}
+
+An individual training point $x_i$ receives a higher weight, if its probability of appearing in the test set is high. Multiplying the resulting weights with the initial input is supposed to result in a more accurate prediction.  \citep{nair2019covariate} give an overview on the most important methods for estimating $w(x)$ following the above sketched \textit{Importance Weighting}:
+
+\begin{description}
+	\item[Discriminative Learning] \citep{bickel2009discriminative} propose to use a probabilistic classifier for estimating $w(x)$. The probabilites are estimated by a discriminative algorithm; they can furthermore be utilized as a measure to decide upon the existence of covariate shift for the data set of concern. More efficient versions of this method have been introduced by \citep{sugiyama2010superfast} (least-squares probabilistic classifier) and \citep{yamada2011improving} (importance weighted LSPC).
+	
+	\item[Kernel Mean Matching] Here training and test data are mapped to reproducing kernel Hilbert spaces (RKHS) and distances between mappings are measured. The algorithm then reweights the training data in a way that their RKHS mapping corresponds to that of the test data \citep{gretton2009covariate}, \citep{huang2006correcting}. This approach has the advtange that no estimation of the densities is required. It got extended by \citep{kanamori2009condition} and \citep{miao2015ensemble}. 
+	
+	\item[KLIEP] (\textit{Kullback Leibler Importance Estimation Procedure}) Model Selection for the above KMM method may be biased. \citep{sugiyama2008direct} therefore propose a method that directly estimates $w(x)$ without density estimation and that contains a proper model selection, by minimizing the Kullback-Leibler divergence from $P_{tst}(x)$ to its estimate $\hat{P}_{tst}(x) = \hat{w}(x)P_{tr}(x)$.
+	
+	\item[(u)LSIF] \textit{(Unconstrained) Least Squares Importance Fitting (uLSIF)} Similar method as KLIEP that uses squared loss to model the importance estimation \citep{kanamori2009least}. It is supposed to be more efficient then KLIEP. uLSIF is a numerically stable version of LSIF.
+\end{description}
+
+In addition, there are further approaches to the problem, as \textit{Asymptotic Bayesian Generalization Error} \citep{yamazaki2007asymptotic}, \textit{Importance Weighted Cross Validation} \citep{sugiyama2007covariate} or \textit{Adversarial Search} \citep{globerson2009adversarial}.
+
+\subsection*{Statistical Learning}
+
+\citep{bendavid2009training} provides a setting of domain adaption for which he derrives error bounds. These bounds forego assumptions on the similarity between the domain of train and test data. Ben-David proposes two different algorithms, which he calls `adaptive inductive transfer learning algorithms', see \citep{ben2003exploiting} and \citep{ben2007analysis}.
+\bigskip
+
+In addition, an exhaustive overview on covariate shift adaption can be found in \citep{sugiyama2012machine}.

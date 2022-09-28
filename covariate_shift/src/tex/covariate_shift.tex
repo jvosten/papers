@@ -1,0 +1,175 @@
+
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}    % Typical maths resource packages
+\usepackage{graphicx}                           % Packages to allow inclusion of graphics
+\usepackage{hyperref}                           % For creating hyperlinks in cross references
+\usepackage[authoryear]{natbib}                 % literature reference style
+\usepackage[bf, margin=1cm]{caption}
+\usepackage[english]{babel}
+\usepackage{xcolor} % options: [usenames,dvipsnames]
+\usepackage{subfig}
+\usepackage{inputenc}
+\usepackage[font=small]{caption} 
+%\usepackage[showframe]{geometry}
+
+% -------------------------------
+% --- for proper tables ---
+% -------------------------------
+
+\usepackage{booktabs,
+	tabularx,
+	ragged2e,
+	dcolumn} 
+
+\usepackage{booktabs,tabularx,ragged2e,dcolumn,caption} 
+\newcolumntype{C}{>{\Centering\arraybackslash \hspace{0pt}}X}
+\newcolumntype{d}[1]{D{.}{,}{#1}}
+% handy shortcut macros
+\newcommand\mc[1]{\multicolumn{1}{c}{#1}}
+\newcommand\MC[1]{\multicolumn{1}{C}{#1}}
+
+% -------------------------------
+% --- some layout definitions ---
+% -------------------------------
+
+% define topline
+%\usepackage[automark]{scrpage2}
+%\pagestyle{scrheadings}
+%\automark{section}
+%\clearscrheadings
+%\ohead{\headmark}
+
+% define citation style
+\bibliographystyle{ecta}
+
+% define page size, margin size
+\setlength{\headheight}{1.1\baselineskip}
+%\setlength{\parindent}{0em} 
+\voffset=-2cm
+\hoffset=-3cm
+\textheight24cm
+\textwidth15.5cm
+\topmargin1cm
+\oddsidemargin3cm
+\evensidemargin3cm
+
+% comments
+\newcommand{\kom}[1]{{\textcolor{red}{#1}}}
+\newcommand{\qom}[1]{{\textcolor{green}{#1}}}
+
+% define line line spacing = 1.5
+\renewcommand{\baselinestretch}{1.5}
+
+% define second level for `itemizing'
+\renewcommand{\labelitemii}{-}
+
+\newtheorem*{lemma*}{Lemma}
+\newtheorem*{defin*}{Definition}
+
+
+% --------------------------------------
+% --------------------------------------
+% --------------------------------------
+% --- the structure the tex document ---
+% ---  (this our recommendation) -------
+% frontmatter:
+%   - titlepage (mandatory),
+%   - acknowledgement,
+%   - abstract,
+%   - table of contents (mandatory),
+%   - list of abbreviations (not mandatory),
+%   - list of figures (not mandatory),
+%   - list of tables  (not mandatory) .
+%
+% body of the thesis (the structure of the thesis body is not mandatory, but the list of literature is mandatory):
+%   - introduction,
+%   - methods,
+%   - data,
+%   - results,
+%   - conclusion,
+%   - literature (mandatory),
+%   - appendix (figures, tables).
+%
+% last page:
+%   - declaration of authorship (mandatory).
+% --------------------------------------
+% --------------------------------------
+% --------------------------------------
+
+\begin{document}
+
+% -------------------------------
+% --- frontmatter: Title page ---
+% -------------------------------
+
+\thispagestyle{empty}
+\input{prependix/titlepage}
+
+% ------------------------------------
+% --- frontmatter: Acknowledgement ---
+% ------------------------------------
+\newpage
+%\input{prependix/glied}
+
+%
+%% -----------------------------
+%% --- frontmatter: Contents ---
+%% -----------------------------
+\newpage
+\pagestyle{plain}
+\pagenumbering{roman}   % define page number in roman style
+\setcounter{page}{1}    % start page numbering
+\tableofcontents
+\clearpage
+%
+
+%
+% -------------------------------
+% --- main body of the thesis ---
+% -------------------------------
+\newpage
+\pagestyle{plain}
+\setcounter{page}{1}    % start page numbering anew
+\pagenumbering{arabic}  % page numbers in arabic style
+
+%\fcolorbox{red}{yellow}{\begin{minipage}{\textwidth}
+%		
+%\end{minipage}}
+
+\input{body/intro}
+\input{body/relatedwork}
+\input{body/methods}
+\newpage
+\input{body/exp_design}
+\newpage
+\input{body/results}
+\input{body/conc}
+
+
+
+% ----------------
+% --- appendix ---
+% ----------------
+\appendix
+
+% literature
+\newpage
+\addcontentsline{toc}{section}{References}
+\bibliography{appendix/lit_ba20}
+
+% figures (not mandatory)
+\newpage
+\input{appendix/app_figures}
+
+ 
+% --------------------------------------------
+% --- last page: Declaration of Authorship ---
+% --------------------------------------------
+
+%\newpage
+%\thispagestyle{empty}
+%\input{appendix/authorship}
+
+
+\label{key}\end{document}

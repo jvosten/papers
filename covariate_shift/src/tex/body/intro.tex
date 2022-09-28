@@ -1,0 +1,31 @@
+\section{Introduction}\label{Sec:intro}
+
+In recent years \textit{data} has become an important topic for the broader public, exceeding its natural habitat of science and computer programming. Some proclaimed it to be the oil of the $21{th}$ century. A major reason for the rush lies in the availability of data and the development of new technologies and methods, which enable us to design algorithms that learn from data. This emerging scientific field is known as Machine Learning (ML), some even see the advent of a new scientific age:
+\begin{quote}
+	\small
+	The new availability of huge amounts of data, along with the statistical tools to crunch these numbers, offers a whole new way of understanding the world. Correlation supersedes causation, and science can advance even without coherent models, unified theories, or really any mechanistic explanation at all.\footnote{\url{https://www.wired.com/2008/06/pb-theory/}}
+\end{quote}
+To temper the above quoted author's excitement, we could simply ask about the Problem of Induction; the question of whether it is possible to infer a generally valid law based on single observations. Presuming we go bird watching and observe a 100 swans, all of them with white plumage, we could then draw the following two inductive conclusions:
+\begin{quote}
+	\begin{itemize}
+		\small
+		\item[(C1)] All swans observed so far were white. Therefore all swans are white.\\ $F(a_1),\dots, F(a_n) \Rightarrow \forall x: F(x)$. 
+		\item[(C2)] All swans observed so far were white. Therefore the next observed swan will be white. $F(a_1),\dots,F(a_n) \Rightarrow F(a_{n+1})$.
+	\end{itemize}
+\end{quote} 
+This poses two questions regarding justification: how do we justitfy generalizing about some object $x$'s features $F$ based on $n$ observations of a particular instance $F(a_1),\dots,F(a_n) $; and how do we justify the assumption, that future observations $a_{n+1}$ are going to fall under $F$, as the past ones. The \textit{Problem of Induction} forms one of the fundamental problems in the domain of Epistemology and Theory of Machine Learning \cite{sterkenburg2020no}. In bringing this up, we remark that (statistical) learning from data faces the same problems as any field utilizing inductive inferrence. Regarding ML we could then alter $C1$ and $C2$ in the following way
+\begin{quote}
+	\begin{itemize}
+		\small
+		\item[(C3)] All observations $x_i$ for feature $x$ fall within the range of $[a,b]$. Therefore the model learns $y \in [a,b]$. 
+		\item[(C4)] All observations $x_i$ for feature $x$ fall within the range of $[a,b]$. Therefore the model predicts $y \in [a,b]$ for $x_{n+1}$.
+	\end{itemize}
+\end{quote} 
+One could insist that the reasoning of $C3$ and $C4$ does not seem problematic and refers us to all those well-functioning ML models and applications. But, especially when it comes to real world ML applications, the following problem is very common: the data $x_{ts} \in [c,d]$, on which the model $f(x)$ will be tested on in the end by the user, is not strictly (or not at all) represented by the data $x_{tr} \in [a,b]$ that was used  for training the underlying model. This kind of violation of $C3$ and $C4$ is called Dataset Shift \citep{moreno2012unifying}. More technically speaking, dataset shift appears when training and test joint distributions are different \citep{quionero2009dataset}. Moreno-Torres et al. identify three main types of dataset shift, covering ($i$.) a shift in the independent variables (\textit{Covariate shift}), ($ii$.) in the target variable (\textit{Prior probability shift}) or ($iii$.) in the relationship between the two (\textit{Concept shift}) .
+
+In this paper we will focus on the first type, covariate shift. In this case the values of the covariates $X$ causally determine the class label $Y$. A shift then occurs, if the distribution of one or more of the covariates $X_{ts}$ in the test data significantly changes compared to $X_{tr}$ in the training data. Our goal then is to employ a monotonic lattice based model to mitigate the effect of covariate shift. This kind of model learns flexible monotonic functions by using calibrated interpolated look-up tables, the lattice \citep{gupta2016monotonic}. We can think of it as looking up a value $x$ for $\mathrm{sin}(x)$ in a textbook. The monotonicity constraint for individual features allows us to model prior knowledge. For instance, assume we want to estimate the risk of lung cancer for a patient. In the patients record we might find a covariate `cigarettes smoked per day'. We expect the risk of lung cancer never to decrease as the amount of cigarettes smoked per day increases. This prior domain knowledge could nout be reflected in a model that learns from a small and noisy data set (see also the example of Fig. \ref{Fig:gup2} and \ref{Fig:gup1}).
+
+There is one major restriction to the lattice approach, though. It is only suitable for low dimensional ML problems, because the weights of the function are computed in $\mathcal{O}(2^D)$ operations. For the experiment in this paper we will use data from the domain of credit scoring, as the information on potential customers, characterized by the covariates, determines the credit score $Y$. Credit scroing is very suitable for our endeavour, as it can be considered a low dimension setting \citep[Tab.~1]{lessmann2015benchmarking} and covariate shift can be a problematic issue (see \ref{Sec:covshift}). The goal of the experiment is to show that a TensorFlow Lattice (TFL) calibrated linear model (GAM) does not perform worse than a comparison classifier, in this case a Random Forrest model.
+
+The paper is organized as follows. We begin with an overview of relatedwork in covariate shift adaption. Then we outline the theoretical conception of covariate shift, lattice regression and extionsions of the lattice model. Sec. \ref{Sec:Exp} describes the experiment set-up, followed by a presentation of the results. Finally, we draw a conclusion in  Section \ref{Sec:Conc}. 
+		

@@ -5,6 +5,7 @@ covariate_shift/tex/*
 
 README.html
 .DS_Store 
+.vscode
 
 ### R related #######################################################################
 # History files

@@ -1,0 +1,37 @@
+\section{Results}\label{Sec:Results}
+
+As summary of the results of our experiment is provided in Tab. \ref{tab:res}. On a first glance there is no larger difference in the performance of both classifier, with random forrest doing slightly better in most of cases. But the averaging over the $\mathrm{AUC}_{ts}$ values is deceiving. Applying Wilcoxon's Signed-Rank test on the result leaves us with a \textit{p}-value of $0.25$; we therefore cannot reject the $H_0$-hypothesis. Based on the given data and employing the above sketched models we cannot state that one classifier performs better then the other. This result aligns with those of \citep[Sec.~10]{gupta2016monotonic} and \citep[Sec.~8]{wang2020deontological}, who both test calibrated lattice models against a random forrest classifier. The former tune their hyperparameters, our experiment set up is more comparable to the one of Wang \& Gupta. As we saw in Sec. \ref{Sec:covshift}, they also used the TCD data set. Our experiment can therefore partially be seen as a confirmation of their experiment, since we only reproduced it with a different classifier for comparison. \medskip
+
+\begin{table}[!htb]
+	\begin{center}
+		\small
+		\begin{tabular}[t]{lrrrrr}
+		\toprule
+		\multicolumn{1}{c}{ } & \multicolumn{2}{c}{\textbf{Lattice}} & \multicolumn{2}{c}{\textbf{Tree}} & \multicolumn{1}{c}{Diff} \\
+		\cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5} \cmidrule(l{3pt}r{3pt}){6-6}
+				 & $\mathrm{AUC}_{tr} $ & $\mathrm{AUC}_{ts}$  & $\mathrm{AUC}_{tr}$ & $\mathrm{AUC}_{ts}$ & $\mathrm{AUC}_{ts}$\\
+		\midrule
+		GER & 0.7523 & \textbf{0.7737} & 1.0000 & 0.7643 & 0.0094\\
+		GMC & 0.8367 & 0.8438 & 0.9998 & \textbf{0.8585} & -0.0146\\
+		PAK & 0.5481 & 0.5422 & 0.9371 & \textbf{0.5733} & -0.0311\\
+		TCD & 0.7316 & 0.7271 & 0.9997 &\textbf{ 0.7728} & -0.0458\\
+		\midrule
+		Average & 0.7171 & 0.7216 & 0.9841 & 0.7422 & \\ 
+		\addlinespace
+		\bottomrule
+		\end{tabular}
+	\caption{Resulting $AUC$ values from the experiment}
+	\label{tab:res}
+	\end{center}
+\end{table}
+\vspace*{-0.6cm}
+For improving the experiment set-up to hopefully obtain even more sound results, a couple of measures could be taken:
+\begin{itemize}
+	\setlength\itemsep{-0.05em}
+	\item[-] The statistical test could be altered, so that we actually reject the $H_0$-Hypothesis. An alternative would be an Equivalence test \citep{walker2011understanding}.
+	\item[-] The number of credit scoring data sets could be increased.
+	\item[-] The data could be split in a more sophisticated manner, for instance by cross-validation.
+	\item[-] Other types of classifiers could be introduced for comparison
+	\item[-] The grid could be tuned for all of the hyperparameters.
+\end{itemize}
+

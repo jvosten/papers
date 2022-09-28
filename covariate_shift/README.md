@@ -1,7 +1,7 @@
 # Mitigating Covariate Shift for Low Dimensional Machine Learning Problems via Lattice Based Models 
  
 ## About this project
-Bachelor Thesis submitted to the School of Business and Economics of Humboldt-Universität zu Berlin for the degree B.Sc. Economics.
+Bachelor Thesis submitted to the School of Fun and Joy of Infinite-Jest-Universität zu Berlin for the degree B.Sc. Economics.
 
 ### Built with
 
@@ -29,7 +29,7 @@ Alternatively `scr/03full_script.R` contains instructions how to set up a `virtu
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/Humboldt-WI/dissertations/covariate_shift.git
+   git clone https://github.com/jvosten/papers/tree/main/covariate_shift
    ```
 2. Go to project directory
    ```sh
