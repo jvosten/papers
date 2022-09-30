@@ -5,7 +5,7 @@
 <br>
 <p align="center">
 <img src="src/img/bird_ex.png" width="700">  
-<p align="center"><small> &#169 <a href="https://www.kaggle.com/gpiosenka/100-bird-species">The World Color Survey</a> </small></center></p>
+<p align="center"><small> &#169 <a href="https://www.kaggle.com/gpiosenka/100-bird-species">100 Bird Species</a> </small></center></p>
 </p>
 <br>
 

@@ -1,6 +1,4 @@
 ### Project related #################################################################
-credit_scoring_metrics/out/*
-
 covariate_shift/tex/*
 
 README.html
